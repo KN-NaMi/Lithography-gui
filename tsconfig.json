@@ -8,13 +8,24 @@
     "src/preload/*.d.ts"
   ],
   "compilerOptions": {
+    "allowArbitraryExtensions": true,
     "verbatimModuleSyntax": true,
     "useDefineForClassFields": true,
     "strict": false,
     "allowJs": true,
     "checkJs": true,
-    "types": ["svelte"],
-    "lib": ["ESNext", "DOM", "DOM.Iterable"]
+    "types": [
+      "svelte"
+    ],
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ]
   },
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }
