@@ -1,7 +1,6 @@
 <script>
   import './app.css';
+  import Masks from "./masks/maskComponent.svelte";
 </script>
 
-<h1 class="text-3xl font-bold underline">
-  Hello, Tailwind CSS!
-</h1>
+<Masks />
