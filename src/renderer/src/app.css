@@ -7,3 +7,24 @@
       font-family: 'Arial', sans-serif;
     }
   }
+
+html, body {
+    height: 100%;                
+    margin: 0;                   
+    overflow: hidden;            
+    display: flex;
+    flex-direction: column;      
+}
+
+main {
+    flex: 1;                    
+    display: flex;
+    justify-content: center;     
+    align-items: center;         
+    overflow: hidden;           
+}
+
+html, body, #app {
+    height: 100%;
+}
+

@@ -7,6 +7,7 @@ module.exports = {
     extend: {
       colors: {
         primary: settings.primaryColor,
+        secondary: settings.secondaryColor,
       },
       fontFamily: {
         sans: ['Arial', 'sans-serif'],
