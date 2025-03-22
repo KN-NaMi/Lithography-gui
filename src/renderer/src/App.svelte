@@ -2,6 +2,6 @@
   import './app.css';
 </script>
 
-<h1 class="text-3xl font-bold underline">
-  Hello, Tailwind CSS!
-</h1>
+<body class="text-primary">
+  <h1 class="font-bold">Hello, World!</h1>
+</body>
