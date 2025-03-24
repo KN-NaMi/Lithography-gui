@@ -5,13 +5,15 @@
 </script>
 
 <div>
-    <nav class="flex items-center justify-between p-4 bg-primary text-white">
+    <nav class="flex items-center justify-between p-4 bg-primary text-white h-[12vh]">
         <div class="flex items-center">
-            <img src={namilogo} alt="Logo" class="w-16 h-16 mr-8" />
-            <span class="text-3xl font-semibold">{settings.appName}</span>
+            <img src={namilogo} alt="Logo" class="w-[5vw] h-[5vw] mr-4" />
+            <span class="text-[2vw] font-semibold">
+                {settings.appName}
+            </span>
         </div>
         <button class="p-2 rounded-lg hover:bg-secondary transition">
-            <Settings class="w-10 h-10" />
+            <Settings class="w-[3vw] h-[5vh]" />
         </button>
     </nav>
 </div>
