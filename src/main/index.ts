@@ -42,7 +42,7 @@ ipcMain.on('open-new-window', () => {
   });
 
   if (process.env.NODE_ENV === 'development') {
-    newWindow.loadURL('http://localhost:5173/new-window');
+    newWindow.loadURL('http://localhost:5173/#new-window');
   } else {
     newWindow.loadFile(path.join(__dirname, '../../dist/renderer/index.html'));
   }
