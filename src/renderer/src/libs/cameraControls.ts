@@ -9,7 +9,7 @@ import {
 } from './cameraStore'
 
 // Initialize webcam with the selected device
-export async function initializeWebcam(videoElement: HTMLVideoElement, cameraViewElement: HTMLElement) {
+export async function initializeWebcam(videoElement: HTMLVideoElement) {
   try {
     // Stop any existing stream
     const currentStream = get(stream)
@@ -17,26 +17,44 @@ export async function initializeWebcam(videoElement: HTMLVideoElement, cameraVie
       currentStream.getTracks().forEach((track) => track.stop())
     }
 
+    // Reset error state
+    cameraError.set(false)
+
     // Get stream with selected device
     const newStream = await navigator.mediaDevices.getUserMedia({
-      video: { deviceId: get(selectedDeviceId) ? { exact: get(selectedDeviceId) } : undefined },
+      video: { 
+        deviceId: get(selectedDeviceId) ? { exact: get(selectedDeviceId) } : undefined 
+      },
       audio: false
     })
 
-    videoElement.srcObject = newStream
-    videoElement.play()
+    // Ensure video element is ready
+    if (videoElement) {
+      videoElement.srcObject = newStream
+      
+      // Wait for metadata to load to ensure correct video dimensions
+      await new Promise<void>((resolve) => {
+        videoElement.onloadedmetadata = () => {
+          videoElement.play()
+          resolve()
+        }
+      })
+    }
     
     stream.set(newStream)
-    cameraError.set(false)
   } catch (err) {
     console.error('Error accessing webcam:', err)
     cameraError.set(true)
   }
 }
 
-// Request fullscreen for camera view
+// Request fullscreen
 export function toggleFullscreen(element: HTMLElement) {
-  element.requestFullscreen()
+  if (document.fullscreenElement) {
+    document.exitFullscreen()
+  } else {
+    element.requestFullscreen()
+  }
 }
 
 // Take a screenshot of the current video frame

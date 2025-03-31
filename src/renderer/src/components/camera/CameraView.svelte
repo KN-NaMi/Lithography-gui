@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
   import { Camera, Settings, Expand, FileDown, CircleX } from 'lucide-svelte'
   import {
     videoDevices,
@@ -7,41 +7,80 @@
     screenshotData,
     showScreenshotPreview,
     initScreenshotCanvas,
-    getVideoDevices
-  } from './cameraStore'
+    getVideoDevices,
+    stream,
+    cameraError
+  } from '../../libs/cameraStore'
   import {
     initializeWebcam,
-    toggleFullscreen,
     takeScreenshot,
     downloadScreenshot,
     openCameraSettings
-  } from './cameraControls'
+  } from '../../libs/cameraControls'
 
   // DOM elements
   let cameraView: HTMLElement
   let videoElement: HTMLVideoElement
 
+  // Reactive variable to track initialization status
+  let isInitialized = false
+
   onMount(async () => {
     // Initialize screenshot canvas
     initScreenshotCanvas()
 
-    // Get available video devices
-    await getVideoDevices()
-
-    // Create video element and add to DOM
+    // Create video element
     videoElement = document.createElement('video')
     videoElement.style.width = '100%'
     videoElement.style.height = '100%'
-    videoElement.style.objectFit = 'cover'
-    cameraView.appendChild(videoElement)
+    videoElement.style.objectFit = 'contain'
 
-    // Initialize webcam with first available device
-    await initializeWebcam(videoElement, cameraView)
+    // Create a container for the video
+    const container = document.createElement('div')
+    container.style.width = '100%'
+    container.style.height = '100%'
+    container.style.display = 'flex'
+    container.style.justifyContent = 'center'
+    container.style.alignItems = 'center'
+    container.style.overflow = 'hidden'
+
+    // Add video to container and container to cameraView
+    container.appendChild(videoElement)
+    cameraView.appendChild(container)
+
+    // Get available video devices
+    const devices = await getVideoDevices()
+
+    // Initialize webcam if devices are available
+    if (devices.length > 0) {
+      await initializeWebcam(videoElement)
+      isInitialized = true
+    }
+  })
+
+  onDestroy(() => {
+    // Clean up stream on component destroy
+    if ($stream) {
+      $stream.getTracks().forEach((track) => track.stop())
+    }
   })
 
   // Handle device selection change
-  function handleDeviceChange() {
-    initializeWebcam(videoElement, cameraView)
+  async function handleDeviceChange() {
+    await initializeWebcam(videoElement)
+  }
+
+  // Improved fullscreen function
+  function handleFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      // Use the container div for fullscreen instead of the entire view
+      const container = cameraView.querySelector('div')
+      if (container) {
+        container.requestFullscreen()
+      }
+    }
   }
 
   // Close screenshot preview
@@ -63,6 +102,7 @@
       class="bg-gray-900 text-white text-xs py-1 pl-2 pr-6 rounded border border-gray-700"
       bind:value={$selectedDeviceId}
       on:change={handleDeviceChange}
+      disabled={$videoDevices.length === 0}
     >
       {#each $videoDevices as device}
         <option value={device.deviceId}>
@@ -74,10 +114,10 @@
 
   <!-- Camera controls -->
   <div class="flex items-right space-x-3 m-2">
-    <button on:click={() => toggleFullscreen(cameraView)}>
+    <button on:click={handleFullscreen} disabled={!isInitialized}>
       <Expand class="w-4 h-4 text-white" />
     </button>
-    <button on:click={captureScreenshot}>
+    <button on:click={captureScreenshot} disabled={!isInitialized}>
       <Camera class="w-4 h-4 text-white" />
     </button>
     <button on:click={openCameraSettings}>
@@ -85,8 +125,20 @@
     </button>
   </div>
 </div>
-<div class="">
+
+<div class="w-full h-64">
   <div bind:this={cameraView} class="w-full h-full overflow-hidden rounded-xl"></div>
+
+  <!-- Error and initialization handling -->
+  {#if $cameraError}
+    <div class="text-red-500 text-center mt-4">
+      Unable to access camera. Please check your camera permissions.
+    </div>
+  {:else if $videoDevices.length === 0}
+    <div class="text-yellow-500 text-center mt-4">
+      No video devices found. Please connect a camera.
+    </div>
+  {/if}
 
   <!-- Screenshot preview overlay -->
   {#if $showScreenshotPreview && $screenshotData}

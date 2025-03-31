@@ -7,7 +7,7 @@
 </script>
 
 <div class="p-2 m-1 rounded-lg text-white bg-gray-900 border border-gray-800">
-  <h3 class="text-sm">RED Mode</h3>
+  <h3 class="text-sm mb-2">RED Mode</h3>
 
   <div class="flex items-center gap-2 my-2 text-sm">
     <label>Intensity:</label>
@@ -23,12 +23,10 @@
     </div>
   </div>
 
-  <div class="mt-1">
-    <button
-      class={`px-4 py-0.5 text-xs border-none rounded cursor-pointer text-white ${isOn ? 'bg-green-500' : 'bg-gray-600'}`}
-      on:click={handleToggle}
-    >
-      {isOn ? 'ON' : 'OFF'}
-    </button>
-  </div>
+  <button
+    class={`w-20 py-1 text-xs border-none rounded cursor-pointer text-white ${isOn ? 'bg-green-500' : 'bg-gray-600'}`}
+    on:click={handleToggle}
+  >
+    {isOn ? 'ON' : 'OFF'}
+  </button>
 </div>
