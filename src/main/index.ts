@@ -3,10 +3,17 @@ import path from 'path';
 
 let mainWindow: BrowserWindow;
 
+let resizing = false; 
+
 function createWindow() {
+  const width = 1920;
+  const height = 1080;
+
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: width,
+    height: height,
+    minWidth: 1280,
+    minHeight: 720,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
@@ -24,12 +31,32 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
 
+  // Always keep the aspect ratio
+  mainWindow.on('will-resize', (event, newBounds) => {
+    if (resizing) return; 
+
+    resizing = true;  
+
+    event.preventDefault();
+
+    let { width, height } = newBounds;
+    let expectedHeight = Math.round((width * 9) / 16);
+    let expectedWidth = Math.round((height * 16) / 9);
+
+    if (Math.abs(height - expectedHeight) > Math.abs(width - expectedWidth)) {
+      mainWindow.setSize(expectedWidth, height);
+    } else {
+      mainWindow.setSize(width, expectedHeight);
+    }
+
+    resizing = false; 
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null!;
   });
 }
 
-// Obsługa otwarcia nowego okna
 ipcMain.on('open-new-window', () => {
   const newWindow = new BrowserWindow({
     width: 600,

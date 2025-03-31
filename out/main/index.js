@@ -2,10 +2,15 @@
 const electron = require("electron");
 const path = require("path");
 let mainWindow;
+let resizing = false;
 function createWindow() {
+  const width = 1920;
+  const height = 1080;
   mainWindow = new electron.BrowserWindow({
-    width: 800,
-    height: 600,
+    width,
+    height,
+    minWidth: 1280,
+    minHeight: 720,
     webPreferences: {
       preload: path.join(__dirname, "../preload/index.js"),
       nodeIntegration: false,
@@ -20,6 +25,20 @@ function createWindow() {
   if (process.env.NODE_ENV === "development") {
     mainWindow.webContents.openDevTools();
   }
+  mainWindow.on("will-resize", (event, newBounds) => {
+    if (resizing) return;
+    resizing = true;
+    event.preventDefault();
+    let { width: width2, height: height2 } = newBounds;
+    let expectedHeight = Math.round(width2 * 9 / 16);
+    let expectedWidth = Math.round(height2 * 16 / 9);
+    if (Math.abs(height2 - expectedHeight) > Math.abs(width2 - expectedWidth)) {
+      mainWindow.setSize(expectedWidth, height2);
+    } else {
+      mainWindow.setSize(width2, expectedHeight);
+    }
+    resizing = false;
+  });
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
