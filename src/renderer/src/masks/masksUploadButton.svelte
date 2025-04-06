@@ -43,20 +43,18 @@
     }
 </script>
 
-<button on:click={triggerFileInput}><img src="{uploadIcon}" alt="" /> </button>
+<button 
+  on:click={triggerFileInput}
+  class="flex p-1 cursor-pointer border-none bg-transparent"
+>
+  <img src="{uploadIcon}" alt="" class="h-auto" /> 
+</button>
+
 <input
     type="file"
     bind:this={fileInput}
     on:change={handleFileSelect}
-    accept="image/*"
-    style="display: none"
+    accept="image/svg+xml"
+    class="hidden"
     multiple
 />
-
-<style>
-    button {
-        all: unset;
-        display: flex;
-        padding: 4px;
-    }
-</style>

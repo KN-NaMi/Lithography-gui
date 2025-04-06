@@ -6,37 +6,14 @@
 
 {#if masks.length !== 0}
     {#if activeLayer === 0}
-        <img id="preview" src={masks[imageIndex].white} alt="" />
+        <img id="preview" src={masks[imageIndex].white} alt="" class="w-full h-auto aspect-video object-cover rounded" />
     {:else if activeLayer === 1}
-        <img id="preview" src={masks[imageIndex].blue} alt="" />
+        <img id="preview" src={masks[imageIndex].blue} alt="" class="w-full h-auto aspect-video object-cover rounded" />
     {:else if activeLayer === 2}
-        <img id="preview" src={masks[imageIndex].red} alt="" />
+        <img id="preview" src={masks[imageIndex].red} alt="" class="w-full h-auto aspect-video object-cover rounded" />
     {/if}
 {:else}
-    <div id="umf"><h1>Upload mask first!</h1></div>
+    <div id="umf" class="w-full h-auto aspect-video flex items-center rounded">
+        <h1 class="w-full text-center font-sans font-medium text-2xl text-[#dddddd]">Upload mask first!</h1>
+    </div>
 {/if}
-
-<style>
-    #preview,
-    #umf {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 16/9;
-        object-fit: cover;
-        border-radius: 4px;
-    }
-
-    #umf {
-        display: flex;
-        align-items: center;
-    }
-
-    #umf > h1 {
-        width: 100%;
-        text-align: center;
-        font-family: "Geist", sans-serif;
-        font-weight: 500;
-        font-size: 26px;
-        color: var(--main-font-color);
-    }
-</style>

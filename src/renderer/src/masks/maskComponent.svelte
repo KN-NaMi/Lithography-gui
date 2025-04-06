@@ -7,6 +7,8 @@
     import arrowIcon from "../assets/arrow.svg";
     import settingsIcon from "../assets/settings.svg";
 
+    
+
     let masks = [];
 
     let imageIndex = 0;
@@ -23,103 +25,25 @@
 
 </script>
 
-<div id="mask-wrapper">
-    <div id="controls">
-        <h1>Mask</h1>
+<div id="mask-wrapper" class="w-[600px] h-auto bg-[#0a0a0a] border-2 border-[#272729] rounded-lg flex flex-col p-2.5 relative overflow-hidden">
+    <div id="controls" class="grid grid-cols-[auto_repeat(2,40px)] h-10 gap-2.5 mb-2.5">
+        <h1 class="text-xl font-medium text-[#dddddd] flex items-center font-sans">Mask</h1>
         <UploadButton bind:masks />
-        <button>
-            <img src="{settingsIcon}" alt="" />
+        <button class="flex p-1 cursor-pointer border-none bg-transparent outline-none appearance-none">
+            <img src="{settingsIcon}" alt="" class="h-full"/>
         </button>
     </div>
     <Preview {masks} {activeLayer} {imageIndex} />
-    <div id="overlay">
+    <div id="overlay" class="text-[#dddddd]">
         <Layers bind:activeLayer/>
-        <div id="previous-next">
-            <button id="back" on:click={previousImage}>
-                <img src="{arrowIcon}" alt="arrow" />
+        <div id="previous-next" class="w-full aspect-video absolute bottom-0 left-0 flex justify-between p-5 items-center">
+            <button id="back" on:click={previousImage} class="flex p-1 h-fit bg-[#1818186b] shadow-[0px_0px_24px_10px_#18181898] rounded-lg cursor-pointer border-none outline-none">
+                <img src="{arrowIcon}" alt="arrow" class="rotate-180" />
             </button>
-            <button id="forward" on:click={nextImage}>
+            <button id="forward" on:click={nextImage} class="flex p-1 h-fit bg-[#1818186b] shadow-[0px_0px_24px_10px_#18181898] rounded-lg cursor-pointer border-none outline-none">
                 <img src="{arrowIcon}" alt="arrow" />
             </button>
         </div>
         <AllMasks {masks} bind:imageIndex />
     </div>
 </div>
-
-<style>
-    :root {
-        --main-bgc: #0a0a0a;
-        --main-font-color: #dddddd;
-        --border-color: #272729;
-    }
-
-    #mask-wrapper * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        border-radius: 6px;
-        color: var(--main-font-color);
-    }
-
-    #mask-wrapper {
-        background-color: var(--main-bgc);
-        width: 600px;
-        height: auto;
-        border: 2px solid var(--border-color);
-        border-radius: 8px;
-        display: flex;
-        flex-direction: column;
-        padding: 10px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    #controls {
-        display: grid;
-        grid-template-columns: auto repeat(2, 40px);
-        height: 40px;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    #controls h1 {
-        font-size: 20px;
-        font-family: "Geist", sans-serif;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-    }
-
-    #controls > button {
-        all: unset;
-        display: flex;
-        padding: 4px;
-    }
-
-    #previous-next {
-        width: 100%;
-        aspect-ratio: 16/9;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        display: flex;
-        justify-content: space-between;
-        padding: 20px;
-        align-items: center;
-    }
-
-    #previous-next > button {
-        all: unset;
-        height: fit-content;
-        background-color: #1818186b;
-        box-shadow: 0px 0px 24px 10px #18181898;
-        border-radius: 8px;
-        display: flex;
-        padding: 4px;
-        cursor: pointer;
-    }
-
-    #previous-next > #back > img {
-        rotate: 180deg;
-    }
-</style>

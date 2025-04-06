@@ -4,7 +4,7 @@
     export let imageIndex;
 </script>
 
-<div id="all-masks">
+<div id="all-masks" class="w-full flex justify-center items-end gap-[5px] p-[15px] absolute bottom-0 left-0 z-10">
     {#each masks as mask, index}
         <!-- svelte-ignore a11y_img_redundant_alt -->
         <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -13,38 +13,7 @@
             src={mask.white} 
             alt="Image" 
             on:click={() => imageIndex = index}
-            class={imageIndex === index ? 'selected' : ''} 
+            class={`h-[50px] w-[50px] object-cover cursor-pointer transition-transform duration-200 ease-in-out opacity-70 border border-[#272729] rounded-md ${imageIndex === index ? 'scale-105' : ''}`} 
         />
     {/each}
 </div>
-
-<style>
-    #all-masks {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: flex-end;
-        gap: 5px;
-        padding: 15px;
-
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        z-index: 10;
-    }
-
-    #all-masks > img {
-        height: 50px;
-        width: 50px;
-        object-fit: cover;
-        cursor: pointer;
-        transition: transform 0.2s ease;
-        opacity: 70%;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-    }
-
-    #all-masks > img:hover {
-        transform: scale(1.05);
-    }
-</style>

@@ -1,5 +1,4 @@
 export async function processImage(file: File, color: number): Promise<string> {
-
     // Input validation
     if (!(file instanceof File)) {
         throw new Error('Invalid file parameter: File object required');
@@ -7,8 +6,10 @@ export async function processImage(file: File, color: number): Promise<string> {
     if (![1, 2].includes(color)) {
         throw new Error('Invalid color parameter: must be 1 (blue) or 2 (red)');
     }
-    if (!file.type.startsWith('image/')) {
-        throw new Error('Invalid file type: Image required');
+    
+    // Check if file is SVG
+    if (file.type !== 'image/svg+xml') {
+        throw new Error('Invalid file type: SVG required');
     }
 
     // Reasonable file size limit (2MB)
@@ -17,71 +18,131 @@ export async function processImage(file: File, color: number): Promise<string> {
         throw new Error('File too large: Maximum size is 2MB');
     }
 
-    return new Promise((resolve) => {
-        // Create an image object
-        const img: HTMLImageElement = new Image();
-        const originalUrl: string = URL.createObjectURL(file);
-
-        img.onload = () => {
-            const canvas: HTMLCanvasElement = document.createElement("canvas");
-            const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
-
-            if (!ctx) {
-                throw new Error("Could not get canvas context");
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = (event) => {
+            if (!event.target || typeof event.target.result !== 'string') {
+                reject(new Error('Failed to read SVG file'));
+                return;
             }
 
-            canvas.width = img.width;
-            canvas.height = img.height;
-
-            // Draw original image
-            ctx.drawImage(img, 0, 0);
-
-            // Get image data
-            const imageData: ImageData = ctx.getImageData(
-                0,
-                0,
-                canvas.width,
-                canvas.height,
-            );
-            const data: Uint8ClampedArray = imageData.data;
-
-            // Process pixels: change white-ish to specified color
-            for (let i: number = 0; i < data.length; i += 4) {
-                const r: number = data[i];
-                const g: number = data[i + 1];
-                const b: number = data[i + 2];
-
-                // Check if pixel is white-ish (adjustable thresholds)
-                if (r > 200 && g > 200 && b > 200) {
-                    if (color === 1) {
-                        // Blue
-                        data[i] = 0;     // Red
-                        data[i + 1] = 0; // Green
-                        data[i + 2] = 255; // Blue
-                    } else if (color === 2) {
-                        // Red
-                        data[i] = 255;   // Red
-                        data[i + 1] = 0; // Green
-                        data[i + 2] = 0; // Blue
+            const svgContent = event.target.result;
+            
+            try {
+                // Parse SVG content into DOM
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
+                
+                // Check for parsing errors
+                const parserError = svgDoc.querySelector('parsererror');
+                if (parserError) {
+                    reject(new Error('Invalid SVG format'));
+                    return;
+                }
+                
+                // Find elements with white-ish fill or stroke
+                const svgElements = svgDoc.querySelectorAll('*');
+                const colorValue = color === 1 ? 'rgb(0, 0, 255)' : 'rgb(255, 0, 0)'; // Blue or Red
+                
+                svgElements.forEach(el => {
+                    // Process fill attribute
+                    if (el.hasAttribute('fill')) {
+                        const fill = el.getAttribute('fill');
+                        if (isWhitish(fill)) {
+                            el.setAttribute('fill', colorValue);
+                        }
                     }
-                }
+                    
+                    // Process stroke attribute
+                    if (el.hasAttribute('stroke')) {
+                        const stroke = el.getAttribute('stroke');
+                        if (isWhitish(stroke)) {
+                            el.setAttribute('stroke', colorValue);
+                        }
+                    }
+                    
+                    // Process style attribute
+                    if (el.hasAttribute('style')) {
+                        const style = el.getAttribute('style') || '';
+                        const newStyle = processStyle(style, colorValue);
+                        if (newStyle !== style) {
+                            el.setAttribute('style', newStyle);
+                        }
+                    }
+                });
+                
+                // Convert back to string
+                const serializer = new XMLSerializer();
+                const modifiedSvgContent = serializer.serializeToString(svgDoc);
+                
+                // Create a blob URL for the modified SVG
+                const blob = new Blob([modifiedSvgContent], { type: 'image/svg+xml' });
+                const modifiedUrl = URL.createObjectURL(blob);
+                
+                resolve(modifiedUrl);
+            } catch (error) {
+                reject(new Error(`Error processing SVG: ${error instanceof Error ? error.message : 'Unknown error'}`));
             }
-
-            // Put modified data back
-            ctx.putImageData(imageData, 0, 0);
-
-            // Convert to blob URL
-            canvas.toBlob((blob: Blob | null) => {
-                if (blob) {
-                    const modifiedUrl: string = URL.createObjectURL(blob);
-                    resolve(modifiedUrl);
-                }
-            }, "image/jpeg");
-
-            // Clean up original URL
-            URL.revokeObjectURL(originalUrl);
         };
+        
+        reader.onerror = () => {
+            reject(new Error('Error reading SVG file'));
+        };
+        
+        reader.readAsText(file);
+    });
+}
 
-        img.src = originalUrl;
+// Helper function to check if a color value is whitish
+function isWhitish(colorValue: string | null): boolean {
+    if (!colorValue) return false;
+    
+    // Check for white, #fff, #ffffff, rgb(255,255,255), etc.
+    colorValue = colorValue.toLowerCase().trim();
+    
+    if (colorValue === 'white' || colorValue === '#fff' || colorValue === '#ffffff') {
+        return true;
+    }
+    
+    // Check RGB format
+    const rgbMatch = colorValue.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+    if (rgbMatch) {
+        const r = parseInt(rgbMatch[1], 10);
+        const g = parseInt(rgbMatch[2], 10);
+        const b = parseInt(rgbMatch[3], 10);
+        return r > 200 && g > 200 && b > 200;
+    }
+    
+    // Check hex format (more detailed check)
+    if (colorValue.startsWith('#') && (colorValue.length === 4 || colorValue.length === 7)) {
+        let r, g, b;
+        
+        if (colorValue.length === 4) {
+            // Short hex format (#RGB)
+            r = parseInt(colorValue[1] + colorValue[1], 16);
+            g = parseInt(colorValue[2] + colorValue[2], 16);
+            b = parseInt(colorValue[3] + colorValue[3], 16);
+        } else {
+            // Full hex format (#RRGGBB)
+            r = parseInt(colorValue.slice(1, 3), 16);
+            g = parseInt(colorValue.slice(3, 5), 16);
+            b = parseInt(colorValue.slice(5, 7), 16);
+        }
+        
+        return r > 200 && g > 200 && b > 200;
+    }
+    
+    return false;
+}
+
+// Helper function to process style attributes
+function processStyle(style: string, colorValue: string): string {
+    // Replace fill and stroke properties if they have whitish values
+    return style.replace(/(fill|stroke):\s*([^;]+)/gi, (match, property, value) => {
+        if (isWhitish(value)) {
+            return `${property}: ${colorValue}`;
+        }
+        return match;
     });
 }
