@@ -10,7 +10,9 @@
 
   <div class="flex flex-col p-4 space-y-4">
     <div class="flex flex-row space-x-4">
-      <div class="box border-2 border-primary flex-1 p-4 rounded-lg">
+      <!-- Camera container with min-height to ensure proper sizing 
+       zrob to 16:9 -->
+      <div class="box border-2 border-primary flex-1 p-4 rounded-lg min-h-[300px]">
         <CameraView />
       </div>
       <div class="box border-2 border-primary flex-1 p-4 rounded-lg">

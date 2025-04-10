@@ -23,15 +23,21 @@
   let cameraView: HTMLElement
   let videoElement: HTMLVideoElement
   let container: HTMLDivElement
+  let resizeObserver: ResizeObserver
 
   let isInitialized = false
 
   onMount(async () => {
     initScreenshotCanvas()
 
+    // Create a video element for our camera feed
     videoElement = document.createElement('video')
+    videoElement.style.cssText = 'width: 100%; height: 100%; object-fit: cover;'
 
+    // Create a container with forced 16:9 aspect ratio
     container = document.createElement('div')
+    container.style.cssText =
+      'position: relative; width: 100%; height: 0; padding-bottom: 56.25%; overflow: hidden;'
 
     container.appendChild(videoElement)
     cameraView.appendChild(container)
@@ -42,8 +48,16 @@
       await initializeWebcam(videoElement)
       isInitialized = true
 
-      handleResize()
-      window.addEventListener('resize', handleResize)
+      // Set up a resize observer to handle container size changes
+      resizeObserver = new ResizeObserver(() => {
+        ensureVideoFill()
+      })
+
+      if (container) {
+        resizeObserver.observe(container)
+      }
+
+      ensureVideoFill()
     }
   })
 
@@ -52,28 +66,40 @@
       $stream.getTracks().forEach((track) => track.stop())
     }
 
-    window.removeEventListener('resize', handleResize)
+    // Clean up the observer
+    if (resizeObserver) {
+      if (container) resizeObserver.unobserve(container)
+      resizeObserver.disconnect()
+    }
   })
+
+  // Ensures video element properly fills the container
+  function ensureVideoFill() {
+    if (!videoElement) return
+
+    // Position the video to fill the container while maintaining aspect ratio
+    videoElement.style.position = 'absolute'
+    videoElement.style.top = '0'
+    videoElement.style.left = '0'
+    videoElement.style.width = '100%'
+    videoElement.style.height = '100%'
+    videoElement.style.objectFit = 'cover'
+  }
 
   async function handleDeviceChange() {
     await initializeWebcam(videoElement)
-    // Re-apply scaling after device change
-    setTimeout(handleResize, 500)
   }
 
   function handleFullscreen() {
     if (document.fullscreenElement) {
-      document.exitFullscreen()
+      document.exitFullscreen().catch((err) => console.error('Error exiting fullscreen:', err))
     } else {
-      // Use the container div for fullscreen instead of the entire view
       if (container) {
-        container.requestFullscreen()
+        container
+          .requestFullscreen()
+          .catch((err) => console.error('Error entering fullscreen:', err))
       }
     }
-  }
-
-  function handleResize() {
-    if (!videoElement || !container) return
   }
 
   function closeScreenshotPreview() {
@@ -86,7 +112,7 @@
 </script>
 
 <!-- Control panel component -->
-<div class="flex justify-between items-center rounded-xl w-full">
+<div class="flex justify-between items-center rounded-xl w-full mb-2">
   <!-- Camera selector -->
   <div class="flex items-center space-x-2 rounded-xl">
     <select
@@ -117,9 +143,8 @@
   </div>
 </div>
 
-<!-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-->
-<div bind:this={cameraView} class="rounded-xl"></div>
-<!-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-->
+<!-- Camera view with properly constrained aspect ratio -->
+<div bind:this={cameraView} class="w-full rounded-xl"></div>
 
 {#if $cameraError}
   <div class="text-red-500 text-center mt-4">
