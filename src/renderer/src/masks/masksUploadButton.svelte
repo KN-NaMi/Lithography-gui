@@ -1,21 +1,25 @@
-<script>
+<script lang="ts">
+    export let masks: {
+        white: string;
+        blue: string;
+        red: string;
+    }[];
 
-    export let masks
-
-    import { processImage } from "../lib/imageProcessor.ts";
+    import { processImage } from "../lib/imageProcessor";
 
     import uploadIcon from "../assets/upload.svg";
     
-    let fileInput;
+    let fileInput: HTMLInputElement;
 
     // Handle button click to trigger file input
-    function triggerFileInput() {
+    function triggerFileInput(): void {
         fileInput.click();
     }
 
     // Handle file selection and display
-    async function handleFileSelect(event) {
-        const selectedFiles = Array.from(event.target.files); // Convert FileList to array
+    async function handleFileSelect(event: Event): Promise<void> {
+        const target = event.target as HTMLInputElement;
+        const selectedFiles = Array.from(target.files || []); // Convert FileList to array
 
         if (selectedFiles.length > 0) {
             // Process each file and create mask objects
@@ -47,7 +51,7 @@
   on:click={triggerFileInput}
   class="flex p-1 cursor-pointer border-none bg-transparent"
 >
-  <img src="{uploadIcon}" alt="" class="h-auto" /> 
+  <img src="{uploadIcon}" alt="" class="h-full" /> 
 </button>
 
 <input

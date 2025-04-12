@@ -1,7 +1,11 @@
-<script>
-    export let masks;
-    export let activeLayer;
-    export let imageIndex;
+<script lang="ts">
+    export let masks: {
+        white: string;
+        blue: string;
+        red: string;
+    }[];
+    export let activeLayer: number;
+    export let imageIndex: number;
 </script>
 
 {#if masks.length !== 0}
