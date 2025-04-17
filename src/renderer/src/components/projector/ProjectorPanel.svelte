@@ -6,16 +6,16 @@
 </script>
 
 <main>
-  <div class="flex flex-col">
-    <div class="flex justify-start">Projector</div>
-    <div class="flex justify-end">
-      <select class="bg-gray-900 text-white p-1 rounded text-xs" bind:value={selectedPort}>
+  <div class="flex flex-col w-full">
+    <div class="flex justify-between">
+      <p>Projector</p>
+      <UVmode />
+      <RedMode />
+      <select class="bg-gray-900 text-white p-1 rounded text-xs h-8" bind:value={selectedPort}>
         {#each ports as port}
           <option>{port}</option>
         {/each}
       </select>
     </div>
-    <UVmode />
-    <RedMode />
   </div>
 </main>

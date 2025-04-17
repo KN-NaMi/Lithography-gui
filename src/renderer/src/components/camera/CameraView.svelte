@@ -37,7 +37,7 @@
     // Create a container with forced 16:9 aspect ratio
     container = document.createElement('div')
     container.style.cssText =
-      'position: relative; width: 100%; height: 0; padding-bottom: 56.25%; overflow: hidden;'
+      'position: relative; width: 100%; height: 0; padding-bottom: 56.25%; overflow: hidden; border-radius: 0.75rem;'
 
     container.appendChild(videoElement)
     cameraView.appendChild(container)
@@ -143,18 +143,21 @@
   </div>
 </div>
 
-<!-- Camera view with properly constrained aspect ratio -->
-<div bind:this={cameraView} class="w-full rounded-xl"></div>
-
-{#if $cameraError}
-  <div class="text-red-500 text-center mt-4">
-    Unable to access camera. Please check your camera permissions.
-  </div>
-{:else if $videoDevices.length === 0}
-  <div class="text-yellow-500 text-center mt-4">
-    No video devices found. Please connect a camera.
-  </div>
-{/if}
+<div bind:this={cameraView} class="relative w-full">
+  {#if $cameraError}
+    <div
+      class="absolute inset-0 bg-black bg-opacity-80 z-10 flex items-center justify-center text-red-500 text-center p-4"
+    >
+      Unable to access camera. Please check your camera permissions.
+    </div>
+  {:else if $videoDevices.length === 0}
+    <div
+      class="absolute inset-0 bg-black bg-opacity-80 z-10 flex items-center justify-center text-yellow-500 text-center p-4"
+    >
+      No video devices found. Please connect a camera.
+    </div>
+  {/if}
+</div>
 
 {#if $showScreenshotPreview && $screenshotData}
   <div
