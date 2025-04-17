@@ -34,15 +34,11 @@
       <div
         class="box border-2 border-primary flex-1 p-4 rounded-lg"
         style={isLargeWindow ? '' : `height: ${bottomBoxesHeight}`}
-      >
-        <ProjectorPanel />
-      </div>
+      ></div>
       <div
         class="box border-2 border-primary flex-1 p-4 rounded-lg"
         style={isLargeWindow ? '' : `height: ${bottomBoxesHeight}`}
-      >
-        <ProjectorPanel />
-      </div>
+      ></div>
     </div>
   </div>
 </body>
