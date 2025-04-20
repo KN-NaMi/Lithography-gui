@@ -4,7 +4,7 @@
   import Preview from './masksPreview.svelte'
   import Layers from './masksLayers.svelte'
 
-  import { ChevronLeft, ChevronRight, Settings } from 'lucide-svelte';
+  import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 
   type Mask = {
     white: string
@@ -27,19 +27,32 @@
   }
 </script>
 
-<div
+<div class="w-full h-full bg-blue-500 flex items-center justify-center">
+  <div class="w-full flex absolute top-12 left-10">
+    <UploadButton bind:masks />
+  </div>
+  <div class="w-full h-full flex items-center justify-center">
+    <button class="mr-5" on:click={previousImage}>
+      <ChevronLeft />
+    </button>
+    <Preview {masks} {activeLayer} {imageIndex} />
+    <button class="ml-5"on:click={nextImage}>
+      <ChevronRight />
+    </button>
+  </div>
+
+  <AllMasks {masks} bind:imageIndex />
+</div>
+
+
+
+<!-- <div
   id="mask-wrapper"
   class="w-[600px] h-auto bg-[#0a0a0a] border-2 border-[#272729] rounded-lg flex flex-col p-2.5 relative overflow-hidden"
 >
   <div id="controls" class="grid grid-cols-[auto_repeat(2,40px)] h-10 gap-2.5 mb-2.5">
     <h1 class="text-xl font-medium text-[#dddddd] flex items-center font-sans">Mask</h1>
     <UploadButton bind:masks />
-    <button
-      class="flex p-1 cursor-pointer border-none bg-transparent outline-none appearance-none"
-      aria-label="Settings"
-    >
-    <Settings color="#fff" class="h-full"/>
-    </button>
   </div>
   <Preview {masks} {activeLayer} {imageIndex} />
   <div id="overlay" class="text-[#dddddd]">
@@ -67,4 +80,4 @@
     </div>
     <AllMasks {masks} bind:imageIndex />
   </div>
-</div>
+</div> -->

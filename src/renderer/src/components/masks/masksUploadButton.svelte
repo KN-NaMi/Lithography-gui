@@ -5,7 +5,7 @@
     red: string
   }[]
 
-  import { processImage } from '../lib/imageProcessor'
+  import { processImage } from '../../lib/imageProcessor'
 
   import { Upload } from 'lucide-svelte'
 
@@ -47,7 +47,7 @@
   }
 </script>
 
-<button on:click={triggerFileInput} class="flex p-1 cursor-pointer border-none bg-transparent">
+<button on:click={triggerFileInput} class="flex  cursor-pointer border-none bg-transparent">
   <Upload color="#fff" class="h-full"/>
 </button>
 

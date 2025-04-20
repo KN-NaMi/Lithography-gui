@@ -2,7 +2,6 @@
   export let activeLayer: number
 
   const layer = (event: MouseEvent | KeyboardEvent): void => {
-    // Only process keyboard events if they're Enter or Space
     if (event instanceof KeyboardEvent) {
       if (event.key !== 'Enter' && event.key !== ' ') {
         return
@@ -29,10 +28,7 @@
   }
 </script>
 
-<div
-  id="layers"
-  class="absolute bottom-0 left-0 w-full aspect-video flex flex-col p-2.5 px-5 gap-[5px]"
->
+<div>
   <button
     class="w-5 h-5 border border-[#272729] opacity-90 cursor-pointer z-[11] rounded-lg bg-[#d83939]"
     id="red"
