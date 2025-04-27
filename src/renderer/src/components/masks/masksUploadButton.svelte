@@ -47,8 +47,8 @@
   }
 </script>
 
-<button on:click={triggerFileInput} class="flex  cursor-pointer border-none bg-transparent">
-  <Upload color="#fff" class="h-full"/>
+<button on:click={triggerFileInput} class="flex cursor-pointer border-none bg-transparent">
+  <Upload color="#272729" class="h-full" />
 </button>
 
 <input

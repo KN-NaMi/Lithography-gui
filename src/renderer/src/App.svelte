@@ -1,8 +1,17 @@
-<script>
+<script lang="ts">
   import './app.css';
   import Sidebar from "./components/sidebar.svelte";
   import Panel from "./components/panel.svelte";
   import MaskComponent from './components/masks/maskComponent.svelte'
+  import UploadButton from './components/masks/masksUploadButton.svelte'
+
+  type Mask = {
+    white: string
+    blue: string
+    red: string
+  }
+
+  let masks: Mask[] = []
 </script>
 
 <body class="text-primary h-screen overflow-hidden">
@@ -21,7 +30,10 @@
             <p>Text</p>
           </Panel>
           <Panel title="Mask">
-            <MaskComponent />
+            <span slot="buttons">
+              <UploadButton bind:masks />
+            </span>
+            <MaskComponent bind:masks />
           </Panel>
           <Panel title="Projector">
             <p>Text</p>
