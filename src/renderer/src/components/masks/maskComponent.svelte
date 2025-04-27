@@ -32,7 +32,7 @@
   <div class="ml-2 flex flex-col space-y-1">
     <Layers bind:activeLayer/>
   </div>
-  <div class="w-full h-full flex items-center justify-center">
+  <div class="w-full h-full flex items-center justify-center mr-6">
     <button class="mr-2" on:click={previousImage} disabled={masks.length === 0}>
       <ChevronLeft color="#272729"/>
     </button>
