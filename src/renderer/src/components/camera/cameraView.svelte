@@ -11,30 +11,33 @@
   let containerElement: HTMLDivElement
   let capturedPhoto: string | null = null
 
+  // --- Funkcje obsługi kamery ---
+
   async function getDevices() {
     try {
-      await navigator.mediaDevices.getUserMedia({ video: true })
+      await navigator.mediaDevices.getUserMedia({ video: true }) // Poproś o uprawnienia najpierw
       const allDevices = await navigator.mediaDevices.enumerateDevices()
       devices = allDevices.filter((device) => device.kind === 'videoinput')
       if (devices.length > 0 && !selectedDeviceId) {
-        selectedDeviceId = devices[0].deviceId
+        selectedDeviceId = devices[0].deviceId // Wybierz pierwszą domyślnie
       }
     } catch (err: any) {
       console.error('Error enumerating devices or getting permissions:', err)
-      error = `Unable to access the camera: ${err.message}. Check permissions.`
-      devices = []
+      error = `Nie można uzyskać dostępu do kamery: ${err.message}. Sprawdź uprawnienia.`
+      devices = [] // Wyczyść listę, jeśli nie ma uprawnień/urządzeń
     }
   }
 
   async function startStream(deviceId: string) {
+    // Zatrzymaj poprzedni stream, jeśli istnieje
     stopStream()
-    error = null
+    error = null // Resetuj błąd
 
     const constraints: MediaStreamConstraints = {
       video: {
         deviceId: { exact: deviceId }
       },
-      audio: false
+      audio: false // Zakładamy, że nie potrzebujesz audio
     }
 
     try {
@@ -44,10 +47,11 @@
         const videoTrack = stream.getVideoTracks()[0]
         const settings = videoTrack.getSettings()
         console.log(`Actual resolution: ${settings.width}x${settings.height}`)
+        // videoElement.play(); // Atrybut autoplay powinien wystarczyć
       }
     } catch (err: any) {
       console.error(`Error starting stream for device ${deviceId}:`, err)
-      error = `Cannot start the camera (${devices.find((d) => d.deviceId === deviceId)?.label || 'selected device'}): ${err.message}`
+      error = `Nie można uruchomić kamery (${devices.find((d) => d.deviceId === deviceId)?.label || 'wybrane urządzenie'}): ${err.message}`
       stream = null
       if (videoElement) {
         videoElement.srcObject = null
@@ -60,10 +64,12 @@
       stream.getTracks().forEach((track) => track.stop())
       stream = null
       if (videoElement) {
-        videoElement.srcObject = null
+        videoElement.srcObject = null // Wyczyść źródło wideo
       }
     }
   }
+
+  // --- Obsługa pełnego ekranu ---
 
   async function toggleFullscreen() {
     if (!containerElement) return
@@ -83,6 +89,8 @@
     }
   }
 
+  // --- Obsługa robienia zdjęć ---
+
   function capturePhoto() {
     if (!videoElement || !stream) {
       console.error('No video stream available')
@@ -90,14 +98,20 @@
     }
 
     try {
+      // Utwórz tymczasowy canvas do przechwycenia obrazu z wideo
       const canvas = document.createElement('canvas')
       canvas.width = videoElement.videoWidth
       canvas.height = videoElement.videoHeight
 
       const ctx = canvas.getContext('2d')
       if (ctx) {
+        // Narysuj aktualną klatkę wideo na canvasie
         ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
+
+        // Konwertuj canvas do URL danych
         capturedPhoto = canvas.toDataURL('image/jpeg')
+
+        // Automatycznie pobierz zdjęcie
         downloadPhoto()
       }
     } catch (err) {
@@ -108,36 +122,46 @@
   function downloadPhoto() {
     if (!capturedPhoto) return
 
+    // Utwórz element <a> do pobrania pliku
     const link = document.createElement('a')
     link.href = capturedPhoto
 
+    // Ustaw nazwę pliku z datą i czasem
     const now = new Date()
     const fileName = `photo_${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}-${now.getSeconds().toString().padStart(2, '0')}.jpg`
     link.download = fileName
 
+    // Symuluj kliknięcie, aby pobrać plik
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
   }
 
+  // --- Cykl życia komponentu ---
+
   onMount(async () => {
     await getDevices()
+
+    // Dodajemy nasłuchiwanie na zmianę trybu pełnoekranowego
     document.addEventListener('fullscreenchange', () => {
       isFullscreen = !!document.fullscreenElement
     })
   })
 
   onDestroy(() => {
-    stopStream()
+    stopStream() // Ważne: zwolnij kamerę przy niszczeniu komponentu
     document.removeEventListener('fullscreenchange', () => {})
   })
 
+  // --- Reaktywność ---
+
+  // Uruchom stream, gdy zmieni się wybrane urządzenie i mamy uprawnienia
   $: if (selectedDeviceId && devices.length > 0) {
     startStream(selectedDeviceId)
   }
 </script>
 
-<div class="flex flex-col h-full" bind:this={containerElement}>
+<div class="flex flex-col h-full w-full" bind:this={containerElement}>
   <div class="flex items-center justify-between mb-2 flex-shrink-0">
     <div class="flex-1 mr-4">
       {#if devices.length > 0}
@@ -147,33 +171,33 @@
         >
           {#each devices as device}
             <option value={device.deviceId}
-              >{device.label || `Camera ${device.deviceId.substring(0, 6)}`}</option
+              >{device.label || `Kamera ${device.deviceId.substring(0, 6)}`}</option
             >
           {/each}
         </select>
       {:else if !error}
-        <p class="text-sm text-gray-500">Searching for cameras...</p>
+        <p class="text-sm text-gray-500">Wyszukiwanie kamer...</p>
       {/if}
     </div>
 
     <div class="flex space-x-1">
       <button
         on:click={toggleFullscreen}
-        title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+        title={isFullscreen ? 'Zamknij pełny ekran' : 'Pełny ekran'}
         class="p-1.5 text-gray-600 hover:bg-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
         <Expand size={18} />
       </button>
       <button
         on:click={capturePhoto}
-        title="Take and download photo"
+        title="Zrób i pobierz zdjęcie"
         class="p-1.5 text-gray-600 hover:bg-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
         disabled={!stream}
       >
         <Camera size={18} />
       </button>
       <button
-        title="Settings"
+        title="Ustawienia"
         class="p-1.5 text-gray-600 hover:bg-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
         <Settings size={18} />
@@ -181,14 +205,18 @@
     </div>
   </div>
 
-  <div class="flex-grow w-full relative overflow-hidden bg-black rounded">
-    <div>
+  <div
+    class="flex-grow w-full h-full relative overflow-hidden bg-black rounded"
+    class:fullscreen-container={isFullscreen}
+  >
+    <div class="h-full w-full flex items-center justify-center">
       <video
         bind:this={videoElement}
         autoplay
         muted
         playsinline
-        class="w-full h-full object-contain"
+        class="w-full h-full object-cover"
+        class:fullscreen-video={isFullscreen}
       />
     </div>
 
@@ -202,14 +230,55 @@
       <div
         class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 text-center"
       >
-        <p>Select a video device from the list above.</p>
+        <p>Wybierz urządzenie wideo z listy powyżej.</p>
       </div>
     {:else if !stream && devices.length === 0 && !error}
       <div
         class="inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 text-center"
       >
-        <p>No cameras detected or permissions are missing.</p>
+        <p>Nie wykryto żadnych kamer lub brak uprawnień.</p>
       </div>
     {/if}
   </div>
+
+  <!-- Zachowałem funkcję handleSettings jako placeholder -->
+  <style>
+    :global(body.fullscreen),
+    :global(body.fullscreen .fullscreen-container) {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    :global(.fullscreen-container) {
+      display: flex;
+      flex-direction: column;
+    }
+
+    :global(.fullscreen-video) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Ensure container takes full available height */
+    :global(html, body) {
+      height: 100%;
+    }
+
+    :global(#app, :root) {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+  </style>
+
+  <script>
+    function handleSettings() {
+      console.log('Settings clicked')
+      // Tutaj logika otwarcia ustawień kamery (np. rozdzielczość, klatki)
+    }
+  </script>
 </div>
