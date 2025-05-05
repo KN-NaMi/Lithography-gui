@@ -11,33 +11,30 @@
   let containerElement: HTMLDivElement
   let capturedPhoto: string | null = null
 
-  // --- Funkcje obsługi kamery ---
-
   async function getDevices() {
     try {
-      await navigator.mediaDevices.getUserMedia({ video: true }) // Poproś o uprawnienia najpierw
+      await navigator.mediaDevices.getUserMedia({ video: true })
       const allDevices = await navigator.mediaDevices.enumerateDevices()
       devices = allDevices.filter((device) => device.kind === 'videoinput')
       if (devices.length > 0 && !selectedDeviceId) {
-        selectedDeviceId = devices[0].deviceId // Wybierz pierwszą domyślnie
+        selectedDeviceId = devices[0].deviceId
       }
     } catch (err: any) {
       console.error('Error enumerating devices or getting permissions:', err)
-      error = `Nie można uzyskać dostępu do kamery: ${err.message}. Sprawdź uprawnienia.`
-      devices = [] // Wyczyść listę, jeśli nie ma uprawnień/urządzeń
+      error = `Cannot access the camera: ${err.message}. Check permissions.`
+      devices = []
     }
   }
 
   async function startStream(deviceId: string) {
-    // Zatrzymaj poprzedni stream, jeśli istnieje
     stopStream()
-    error = null // Resetuj błąd
+    error = null
 
     const constraints: MediaStreamConstraints = {
       video: {
         deviceId: { exact: deviceId }
       },
-      audio: false // Zakładamy, że nie potrzebujesz audio
+      audio: false
     }
 
     try {
@@ -47,7 +44,6 @@
         const videoTrack = stream.getVideoTracks()[0]
         const settings = videoTrack.getSettings()
         console.log(`Actual resolution: ${settings.width}x${settings.height}`)
-        // videoElement.play(); // Atrybut autoplay powinien wystarczyć
       }
     } catch (err: any) {
       console.error(`Error starting stream for device ${deviceId}:`, err)
@@ -63,12 +59,10 @@
       stream.getTracks().forEach((track) => track.stop())
       stream = null
       if (videoElement) {
-        videoElement.srcObject = null // Wyczyść źródło wideo
+        videoElement.srcObject = null
       }
     }
   }
-
-  // --- Obsługa pełnego ekranu ---
 
   async function toggleFullscreen() {
     if (!containerElement) return
@@ -88,8 +82,6 @@
     }
   }
 
-  // --- Obsługa robienia zdjęć ---
-
   function capturePhoto() {
     if (!videoElement || !stream) {
       console.error('No video stream available')
@@ -97,20 +89,14 @@
     }
 
     try {
-      // Utwórz tymczasowy canvas do przechwycenia obrazu z wideo
       const canvas = document.createElement('canvas')
       canvas.width = videoElement.videoWidth
       canvas.height = videoElement.videoHeight
 
       const ctx = canvas.getContext('2d')
       if (ctx) {
-        // Narysuj aktualną klatkę wideo na canvasie
         ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
-
-        // Konwertuj canvas do URL danych
         capturedPhoto = canvas.toDataURL('image/jpeg')
-
-        // Automatycznie pobierz zdjęcie
         downloadPhoto()
       }
     } catch (err) {
@@ -121,40 +107,30 @@
   function downloadPhoto() {
     if (!capturedPhoto) return
 
-    // Utwórz element <a> do pobrania pliku
     const link = document.createElement('a')
     link.href = capturedPhoto
 
-    // Ustaw nazwę pliku z datą i czasem
     const now = new Date()
     const fileName = `photo_${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}-${now.getSeconds().toString().padStart(2, '0')}.jpg`
     link.download = fileName
 
-    // Symuluj kliknięcie, aby pobrać plik
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
   }
 
-  // --- Cykl życia komponentu ---
-
   onMount(async () => {
     await getDevices()
-
-    // Dodajemy nasłuchiwanie na zmianę trybu pełnoekranowego
     document.addEventListener('fullscreenchange', () => {
       isFullscreen = !!document.fullscreenElement
     })
   })
 
   onDestroy(() => {
-    stopStream() // Ważne: zwolnij kamerę przy niszczeniu komponentu
+    stopStream()
     document.removeEventListener('fullscreenchange', () => {})
   })
 
-  // --- Reaktywność ---
-
-  // Uruchom stream, gdy zmieni się wybrane urządzenie i mamy uprawnienia
   $: if (selectedDeviceId && devices.length > 0) {
     startStream(selectedDeviceId)
   }
@@ -169,34 +145,34 @@
           class="w-96 h-8 p-1 text-xs border border-gray-300 rounded bg-gray-100 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
         >
           {#each devices as device}
-            <option value={device.deviceId}
-              >{device.label || `Kamera ${device.deviceId.substring(0, 6)}`}</option
-            >
+            <option value={device.deviceId}>
+              {device.label || `Camera ${device.deviceId.substring(0, 6)}`}
+            </option>
           {/each}
         </select>
       {:else if !error}
-        <p class="text-xs text-gray-500">Wyszukiwanie kamer...</p>
+        <p class="text-xs text-gray-500">Searching for cameras...</p>
       {/if}
     </div>
 
     <div class="flex space-x-2">
       <button
         on:click={toggleFullscreen}
-        title={isFullscreen ? 'Zamknij pełny ekran' : 'Pełny ekran'}
+        title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
         class="p-1.5 ml-4 bg-gray-200 text-black hover:bg-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
         <Expand size={22} />
       </button>
       <button
         on:click={capturePhoto}
-        title="Zrób i pobierz zdjęcie"
+        title="Take and download photo"
         class="p-1.5 bg-gray-200 text-black hover:bg-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
         disabled={!stream}
       >
         <Camera size={22} />
       </button>
       <button
-        title="Ustawienia"
+        title="Settings"
         class="p-1.5 bg-gray-200 text-black hover:bg-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
         <Settings size={22} />
@@ -230,25 +206,24 @@
     <div
       class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 text-center"
     >
-      <p>Wybierz urządzenie wideo z listy powyżej.</p>
+      <p>Select a video device from the list above.</p>
     </div>
   {:else if !stream && devices.length === 0 && !error}
     <div
       class="inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 text-center"
     >
-      <p>Nie wykryto żadnych kamer lub brak uprawnień.</p>
+      <p>No cameras detected or permissions missing.</p>
     </div>
   {/if}
 </div>
 
-<!-- Zachowałem funkcję handleSettings jako placeholder -->
 <style>
   :global(body.fullscreen),
   :global(body.fullscreen .fullscreen-container) {
     width: 100%;
     height: 100%;
     margin: 0;
-    padding: 0 !important; /* Override padding when fullscreen */
+    padding: 0 !important;
     overflow: hidden;
   }
 
@@ -261,10 +236,9 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 0 !important; /* Remove border radius when fullscreen */
+    border-radius: 0 !important;
   }
 
-  /* Ensure container takes full available height */
   :global(html, body) {
     height: 100%;
   }
