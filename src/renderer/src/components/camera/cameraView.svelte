@@ -51,7 +51,6 @@
       }
     } catch (err: any) {
       console.error(`Error starting stream for device ${deviceId}:`, err)
-      error = `Nie można uruchomić kamery (${devices.find((d) => d.deviceId === deviceId)?.label || 'wybrane urządzenie'}): ${err.message}`
       stream = null
       if (videoElement) {
         videoElement.srcObject = null
@@ -162,12 +161,12 @@
 </script>
 
 <div class="flex flex-col h-full w-full" bind:this={containerElement}>
-  <div class="flex items-center justify-between mb-2 flex-shrink-0">
-    <div class="flex-1 mr-4">
+  <div class="flex justify-end mb-2 flex-shrink-0 p-2 bg-gray-100 rounded">
+    <div class="flex items-center space-x-2">
       {#if devices.length > 0}
         <select
           bind:value={selectedDeviceId}
-          class="w-full p-2 border border-gray-300 rounded bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="w-96 h-8 p-1 text-xs border border-gray-300 rounded bg-gray-100 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
         >
           {#each devices as device}
             <option value={device.deviceId}
@@ -176,109 +175,103 @@
           {/each}
         </select>
       {:else if !error}
-        <p class="text-sm text-gray-500">Wyszukiwanie kamer...</p>
+        <p class="text-xs text-gray-500">Wyszukiwanie kamer...</p>
       {/if}
     </div>
 
-    <div class="flex space-x-1">
+    <div class="flex space-x-2">
       <button
         on:click={toggleFullscreen}
         title={isFullscreen ? 'Zamknij pełny ekran' : 'Pełny ekran'}
-        class="p-1.5 text-gray-600 hover:bg-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="p-1.5 ml-4 bg-gray-200 text-black hover:bg-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
-        <Expand size={18} />
+        <Expand size={22} />
       </button>
       <button
         on:click={capturePhoto}
         title="Zrób i pobierz zdjęcie"
-        class="p-1.5 text-gray-600 hover:bg-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="p-1.5 bg-gray-200 text-black hover:bg-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
         disabled={!stream}
       >
-        <Camera size={18} />
+        <Camera size={22} />
       </button>
       <button
         title="Ustawienia"
-        class="p-1.5 text-gray-600 hover:bg-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="p-1.5 bg-gray-200 text-black hover:bg-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
-        <Settings size={18} />
+        <Settings size={22} />
       </button>
     </div>
   </div>
 
   <div
-    class="flex-grow w-full h-full relative overflow-hidden bg-black rounded"
+    class="flex-grow w-full h-full relative overflow-hidden rounded p-2"
     class:fullscreen-container={isFullscreen}
   >
-    <div class="h-full w-full flex items-center justify-center">
+    <div class="h-full w-full flex items-center justify-center rounded overflow-hidden">
       <video
         bind:this={videoElement}
         autoplay
         muted
         playsinline
-        class="w-full h-full object-cover"
+        class="w-full h-full object-cover rounded"
         class:fullscreen-video={isFullscreen}
       />
     </div>
-
-    {#if error}
-      <div
-        class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 text-center"
-      >
-        <p>{error}</p>
-      </div>
-    {:else if !stream && devices.length > 0 && !selectedDeviceId}
-      <div
-        class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 text-center"
-      >
-        <p>Wybierz urządzenie wideo z listy powyżej.</p>
-      </div>
-    {:else if !stream && devices.length === 0 && !error}
-      <div
-        class="inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 text-center"
-      >
-        <p>Nie wykryto żadnych kamer lub brak uprawnień.</p>
-      </div>
-    {/if}
   </div>
 
-  <!-- Zachowałem funkcję handleSettings jako placeholder -->
-  <style>
-    :global(body.fullscreen),
-    :global(body.fullscreen .fullscreen-container) {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-
-    :global(.fullscreen-container) {
-      display: flex;
-      flex-direction: column;
-    }
-
-    :global(.fullscreen-video) {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    /* Ensure container takes full available height */
-    :global(html, body) {
-      height: 100%;
-    }
-
-    :global(#app, :root) {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-  </style>
-
-  <script>
-    function handleSettings() {
-      console.log('Settings clicked')
-      // Tutaj logika otwarcia ustawień kamery (np. rozdzielczość, klatki)
-    }
-  </script>
+  {#if error}
+    <div
+      class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 text-center"
+    >
+      <p>{error}</p>
+    </div>
+  {:else if !stream && devices.length > 0 && !selectedDeviceId}
+    <div
+      class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 text-center"
+    >
+      <p>Wybierz urządzenie wideo z listy powyżej.</p>
+    </div>
+  {:else if !stream && devices.length === 0 && !error}
+    <div
+      class="inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 text-center"
+    >
+      <p>Nie wykryto żadnych kamer lub brak uprawnień.</p>
+    </div>
+  {/if}
 </div>
+
+<!-- Zachowałem funkcję handleSettings jako placeholder -->
+<style>
+  :global(body.fullscreen),
+  :global(body.fullscreen .fullscreen-container) {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0 !important; /* Override padding when fullscreen */
+    overflow: hidden;
+  }
+
+  :global(.fullscreen-container) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  :global(.fullscreen-video) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0 !important; /* Remove border radius when fullscreen */
+  }
+
+  /* Ensure container takes full available height */
+  :global(html, body) {
+    height: 100%;
+  }
+
+  :global(#app, :root) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+</style>
