@@ -1,13 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte'
-  import { Expand, Camera, Settings } from 'lucide-svelte'
 
   let devices: MediaDeviceInfo[] = []
   let selectedDeviceId: string | undefined = undefined
   let videoElement: HTMLVideoElement
-  let stream: MediaStream | null = null
+  export let stream: MediaStream | null = null
   let error: string | null = null
-  let isFullscreen = false
+  export let isFullscreen = false
   let containerElement: HTMLDivElement
   let capturedPhoto: string | null = null
 
@@ -64,7 +63,7 @@
     }
   }
 
-  async function toggleFullscreen() {
+  export async function toggleFullscreen() {
     if (!containerElement) return
 
     if (!document.fullscreenElement) {
@@ -82,13 +81,14 @@
     }
   }
 
-  function capturePhoto() {
+  export function capturePhoto() {
     if (!videoElement || !stream) {
       console.error('No video stream available')
       return
     }
 
     try {
+      console.log('Capturing photo...')
       const canvas = document.createElement('canvas')
       canvas.width = videoElement.videoWidth
       canvas.height = videoElement.videoHeight
@@ -98,6 +98,7 @@
         ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
         capturedPhoto = canvas.toDataURL('image/jpeg')
         downloadPhoto()
+        console.log('Photo captured and downloaded')
       }
     } catch (err) {
       console.error('Error capturing photo:', err)
@@ -137,12 +138,12 @@
 </script>
 
 <div class="flex flex-col h-full w-full" bind:this={containerElement}>
-  <div class="flex justify-end mb-2 flex-shrink-0 p-2 bg-gray-100 rounded">
+  <div class="flex justify-end flex-shrink-0 p-2">
     <div class="flex items-center space-x-2">
       {#if devices.length > 0}
         <select
           bind:value={selectedDeviceId}
-          class="w-96 h-8 p-1 text-xs border border-gray-300 rounded bg-gray-100 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+          class="mr-1 w-96 h-8 p-1 text-xs border border-gray-300 rounded bg-gray-100 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
         >
           {#each devices as device}
             <option value={device.deviceId}>
@@ -153,30 +154,6 @@
       {:else if !error}
         <p class="text-xs text-gray-500">Searching for cameras...</p>
       {/if}
-    </div>
-
-    <div class="flex space-x-2">
-      <button
-        on:click={toggleFullscreen}
-        title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-        class="p-1.5 ml-4 bg-gray-200 text-black hover:bg-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-      >
-        <Expand size={22} />
-      </button>
-      <button
-        on:click={capturePhoto}
-        title="Take and download photo"
-        class="p-1.5 bg-gray-200 text-black hover:bg-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-        disabled={!stream}
-      >
-        <Camera size={22} />
-      </button>
-      <button
-        title="Settings"
-        class="p-1.5 bg-gray-200 text-black hover:bg-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-      >
-        <Settings size={22} />
-      </button>
     </div>
   </div>
 

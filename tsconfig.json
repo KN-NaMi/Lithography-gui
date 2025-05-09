@@ -14,7 +14,8 @@
     "allowJs": true,
     "checkJs": true,
     "types": ["svelte"],
-    "lib": ["ESNext", "DOM", "DOM.Iterable"]
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    
   },
   "references": [{ "path": "./tsconfig.node.json" }]
 }
