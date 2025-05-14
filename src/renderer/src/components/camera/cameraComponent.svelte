@@ -1,162 +1,66 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte'
+  import { cameraStore } from '../../lib/cameraLogic'
 
+  let videoElement: HTMLVideoElement
+  let containerElement: HTMLDivElement
+
+  // Create local copies of store values
   let devices: MediaDeviceInfo[] = []
   let selectedDeviceId: string | undefined = undefined
-  let videoElement: HTMLVideoElement
-  export let stream: MediaStream | null = null
   let error: string | null = null
+
+  // Define exported properties to match original component
+  export let stream: MediaStream | null = null
   export let isFullscreen = false
-  let containerElement: HTMLDivElement
-  let capturedPhoto: string | null = null
 
-  async function getDevices() {
-    try {
-      await navigator.mediaDevices.getUserMedia({ video: true })
-      const allDevices = await navigator.mediaDevices.enumerateDevices()
-      devices = allDevices.filter((device) => device.kind === 'videoinput')
-      if (devices.length > 0 && !selectedDeviceId) {
-        selectedDeviceId = devices[0].deviceId
-      }
-    } catch (err: any) {
-      console.error('Error enumerating devices or getting permissions:', err)
-      error = `Cannot access the camera: ${err.message}. Check permissions.`
-      devices = []
+  // Subscribe to stores and update local and exported variables
+  const unsubscribeDevices = cameraStore.devices.subscribe((value) => (devices = value))
+  const unsubscribeSelectedDeviceId = cameraStore.selectedDeviceId.subscribe(
+    (value) => (selectedDeviceId = value)
+  )
+  const unsubscribeStream = cameraStore.stream.subscribe((value) => {
+    stream = value
+    if (videoElement && value) {
+      videoElement.srcObject = value
+    } else if (videoElement) {
+      videoElement.srcObject = null
     }
-  }
+  })
+  const unsubscribeError = cameraStore.error.subscribe((value) => (error = value))
+  const unsubscribeIsFullscreen = cameraStore.isFullscreen.subscribe(
+    (value) => (isFullscreen = value)
+  )
 
-  async function startStream(deviceId: string) {
-    stopStream()
-    error = null
+  // REMOVED: handleDeviceChange function, as it will be in main.svelte
 
-    const constraints: MediaStreamConstraints = {
-      video: {
-        deviceId: { exact: deviceId }
-      },
-      audio: false
-    }
-
-    try {
-      stream = await navigator.mediaDevices.getUserMedia(constraints)
-      if (videoElement) {
-        videoElement.srcObject = stream
-        const videoTrack = stream.getVideoTracks()[0]
-        const settings = videoTrack.getSettings()
-        console.log(`Actual resolution: ${settings.width}x${settings.height}`)
-      }
-    } catch (err: any) {
-      console.error(`Error starting stream for device ${deviceId}:`, err)
-      stream = null
-      if (videoElement) {
-        videoElement.srcObject = null
-      }
-    }
-  }
-
-  function stopStream() {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop())
-      stream = null
-      if (videoElement) {
-        videoElement.srcObject = null
-      }
-    }
-  }
-
-  export async function toggleFullscreen() {
-    if (!containerElement) return
-
-    if (!document.fullscreenElement) {
-      try {
-        await containerElement.requestFullscreen()
-        isFullscreen = true
-      } catch (err) {
-        console.error('Error attempting to enable fullscreen:', err)
-      }
-    } else {
-      if (document.exitFullscreen) {
-        await document.exitFullscreen()
-        isFullscreen = false
-      }
-    }
+  export function toggleFullscreen() {
+    cameraStore.toggleFullscreen(containerElement)
   }
 
   export function capturePhoto() {
-    if (!videoElement || !stream) {
-      console.error('No video stream available')
-      return
-    }
-
-    try {
-      console.log('Capturing photo...')
-      const canvas = document.createElement('canvas')
-      canvas.width = videoElement.videoWidth
-      canvas.height = videoElement.videoHeight
-
-      const ctx = canvas.getContext('2d')
-      if (ctx) {
-        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
-        capturedPhoto = canvas.toDataURL('image/jpeg')
-        downloadPhoto()
-        console.log('Photo captured and downloaded')
-      }
-    } catch (err) {
-      console.error('Error capturing photo:', err)
-    }
-  }
-
-  function downloadPhoto() {
-    if (!capturedPhoto) return
-
-    const link = document.createElement('a')
-    link.href = capturedPhoto
-
-    const now = new Date()
-    const fileName = `photo_${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}-${now.getSeconds().toString().padStart(2, '0')}.jpg`
-    link.download = fileName
-
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    cameraStore.capturePhoto(videoElement)
   }
 
   onMount(async () => {
-    await getDevices()
-    document.addEventListener('fullscreenchange', () => {
-      isFullscreen = !!document.fullscreenElement
-    })
+    await cameraStore.getDevices()
+    document.addEventListener('fullscreenchange', cameraStore.handleFullscreenChange)
   })
 
   onDestroy(() => {
-    stopStream()
-    document.removeEventListener('fullscreenchange', () => {})
-  })
+    cameraStore.stopStream()
+    document.removeEventListener('fullscreenchange', cameraStore.handleFullscreenChange)
 
-  $: if (selectedDeviceId && devices.length > 0) {
-    startStream(selectedDeviceId)
-  }
+    // Unsubscribe from all store subscriptions
+    unsubscribeDevices()
+    unsubscribeSelectedDeviceId()
+    unsubscribeStream()
+    unsubscribeError()
+    unsubscribeIsFullscreen()
+  })
 </script>
 
 <div class="flex flex-col h-full w-full" bind:this={containerElement}>
-  <div class="flex justify-end flex-shrink-0 p-2">
-    <div class="flex items-center space-x-2">
-      {#if devices.length > 0}
-        <select
-          bind:value={selectedDeviceId}
-          class="mr-1 w-96 h-8 p-1 text-xs border border-gray-300 rounded bg-gray-100 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-        >
-          {#each devices as device}
-            <option value={device.deviceId}>
-              {device.label || `Camera ${device.deviceId.substring(0, 6)}`}
-            </option>
-          {/each}
-        </select>
-      {:else if !error}
-        <p class="text-xs text-gray-500">Searching for cameras...</p>
-      {/if}
-    </div>
-  </div>
-
   <div
     class="flex-grow w-full h-full relative overflow-hidden rounded p-2"
     class:fullscreen-container={isFullscreen}
