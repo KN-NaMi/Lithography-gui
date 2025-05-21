@@ -1,10 +1,11 @@
-<!-- AllMasks.svelte -->
 <script lang="ts">
+    
     export let masks: {
         white: string;
         blue: string;
         red: string;
     }[];
+
     export let imageIndex: number;
 
     function handleImageClick(index: number): void {

@@ -4,6 +4,7 @@
   import Panel from "./components/panel.svelte";
   import MaskComponent from './components/masks/maskComponent.svelte'
   import UploadButton from './components/masks/masksUploadButton.svelte'
+  import DeleteButton from "./components/masks/deleteButton.svelte";
 
   type Mask = {
     white: string
@@ -12,6 +13,7 @@
   }
 
   let masks: Mask[] = []
+  let baseImageIndex: number = 0
 </script>
 
 <body class="text-primary h-screen overflow-hidden">
@@ -30,10 +32,11 @@
             <p>Text</p>
           </Panel>
           <Panel title="Mask">
-            <span slot="buttons">
+            <span slot="buttons" class="flex gap-[2dvh]">
               <UploadButton bind:masks />
+              <DeleteButton bind:masks imageIndex={baseImageIndex} />
             </span>
-            <MaskComponent bind:masks />
+            <MaskComponent bind:masks bind:imageIndex={baseImageIndex} />
           </Panel>
           <Panel title="Projector">
             <p>Text</p>
