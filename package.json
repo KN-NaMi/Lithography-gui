@@ -30,13 +30,13 @@
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",
     "@electron-toolkit/eslint-config-ts": "^2.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
-    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tsconfig/svelte": "^5.0.4",
     "@types/node": "^20.14.8",
     "autoprefixer": "^10.4.20",
     "electron": "^31.0.2",
     "electron-builder": "^24.13.3",
-    "electron-vite": "^2.3.0",
+    "electron-vite": "^3.1.0",
     "eslint": "^8.57.0",
     "eslint-plugin-svelte": "^2.41.0",
     "postcss": "^8.5.3",
@@ -47,6 +47,6 @@
     "tailwindcss": "^3.4.1",
     "tslib": "^2.6.3",
     "typescript": "^5.7.3",
-    "vite": "^5.3.1"
+    "vite": "^6.3.5"
   }
 }
