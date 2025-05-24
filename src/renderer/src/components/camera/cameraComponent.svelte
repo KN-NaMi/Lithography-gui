@@ -5,16 +5,13 @@
   let videoElement: HTMLVideoElement
   let containerElement: HTMLDivElement
 
-  // Create local copies of store values
   let devices: MediaDeviceInfo[] = []
   let selectedDeviceId: string | undefined = undefined
   let error: string | null = null
 
-  // Define exported properties to match original component
   export let stream: MediaStream | null = null
   export let isFullscreen = false
 
-  // Subscribe to stores and update local and exported variables
   const unsubscribeDevices = cameraStore.devices.subscribe((value) => (devices = value))
   const unsubscribeSelectedDeviceId = cameraStore.selectedDeviceId.subscribe(
     (value) => (selectedDeviceId = value)
@@ -31,8 +28,6 @@
   const unsubscribeIsFullscreen = cameraStore.isFullscreen.subscribe(
     (value) => (isFullscreen = value)
   )
-
-  // REMOVED: handleDeviceChange function, as it will be in main.svelte
 
   export function toggleFullscreen() {
     cameraStore.toggleFullscreen(containerElement)

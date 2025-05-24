@@ -7,9 +7,8 @@
   import CameraComponent from './components/camera/cameraComponent.svelte'
   import { Camera, Expand } from 'lucide-svelte'
 
-  // Import store and Svelte lifecycle hooks
-  import { cameraStore } from './lib/cameraLogic' // Ensure this path is correct
-  import { onDestroy } from 'svelte' // onMount might not be needed here if CameraComponent handles initial getDevices
+  import { cameraStore } from './lib/cameraLogic'
+  import { onDestroy } from 'svelte'
 
   type Mask = {
     white: string
@@ -23,12 +22,10 @@
   let cameraStream: MediaStream | null = null
   let isFullscreen: boolean = false
 
-  // Variables for camera device selection
   let cameraDevices: MediaDeviceInfo[] = []
   let selectedCameraDeviceId: string | undefined = undefined
-  let cameraError: string | null = null // To show "Searching..." or error related to devices
+  let cameraError: string | null = null
 
-  // Subscribe to camera store values
   const unsubscribeCameraDevices = cameraStore.devices.subscribe((value) => (cameraDevices = value))
   const unsubscribeSelectedCameraDeviceId = cameraStore.selectedDeviceId.subscribe(
     (value) => (selectedCameraDeviceId = value)
@@ -61,7 +58,6 @@
   }
 
   onDestroy(() => {
-    // Unsubscribe from store subscriptions
     unsubscribeCameraDevices()
     unsubscribeSelectedCameraDeviceId()
     unsubscribeCameraError()
