@@ -6,13 +6,17 @@
   import { ChevronLeft, ChevronRight } from 'lucide-svelte'
 
   export let masks: {
-    white: string
-    blue: string
-    red: string
-  }[] = []
+    white: string;
+    blue: string;
+    red: string;
+    iWhite: string;
+    iBlue: string;
+    iRed: string;
+  }[];
 
-  export let imageIndex: number = 0
+  export let imageIndex: number = 2
   let activeLayer: number = 0
+  let activeInvert: boolean = false;
 
   const nextImage = (): void => {
     if (masks.length > 0) {
@@ -32,13 +36,13 @@
 
 <div class="w-full h-full flex items-center justify-center">
   <div class="ml-2 flex flex-col space-y-1">
-    <Layers bind:activeLayer />
+    <Layers bind:activeLayer bind:activeInvert/>
   </div>
   <div class="w-full h-full flex items-center justify-center mr-6">
     <button class="mr-2" on:click={previousImage} disabled={masks.length === 0}>
       <ChevronLeft color="#272729" />
     </button>
-    <Preview {masks} {activeLayer} {imageIndex} />
+    <Preview bind:masks {activeLayer} {activeInvert} {imageIndex} />
     <button class="ml-2" on:click={nextImage} disabled={masks.length === 0}>
       <ChevronRight color="#272729" />
     </button>

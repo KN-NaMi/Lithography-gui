@@ -1,12 +1,14 @@
 <script lang="ts">
   export let masks: {
-    white: string
-    blue: string
-    red: string
-  }[]
+    white: string;
+    blue: string;
+    red: string;
+    iWhite: string;
+    iBlue: string;
+    iRed: string;
+  }[];
 
   import { processImage } from '../../lib/imageProcessor'
-
   import { Upload } from 'lucide-svelte'
 
   let fileInput: HTMLInputElement
@@ -25,18 +27,25 @@
       // Process each file and create mask objects
       const recentlyAddedMasks = await Promise.all(
         selectedFiles.map(async (file) => {
-          // Create black-white image URL
-          const wbImageURL = URL.createObjectURL(file)
+          // Create original image URL (keeping original colors including white)
+          const whiteImageURL = URL.createObjectURL(file)
 
           // Process image, change white to blue
-          const blueImageURL = await processImage(file, 1)
+          const blueImageURL = await processImage(file, 1, false)
           // Process image, change white to red
-          const redImageURL = await processImage(file, 2)
+          const redImageURL = await processImage(file, 2, false)
+
+          const whiteInvertedImageURL = await processImage(file, 3, true)
+          const redInvertedImageURL = await processImage(file, 2, true)
+          const blueInvertedImageURL = await processImage(file, 1, true)
 
           return {
-            white: wbImageURL,
+            white: whiteImageURL,
             blue: blueImageURL,
-            red: redImageURL
+            red: redImageURL,
+            iWhite: whiteInvertedImageURL,
+            iBlue: blueInvertedImageURL,
+            iRed: redInvertedImageURL
           }
         })
       )
@@ -57,5 +66,4 @@
   on:change={handleFileSelect}
   accept="image/svg+xml"
   class="hidden"
-  multiple
-/>
+  multiple />
